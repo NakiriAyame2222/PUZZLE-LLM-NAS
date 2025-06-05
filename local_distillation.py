@@ -25,7 +25,7 @@ def train_single_block_variant(parent_model, tokenizer,
     device = C.DEVICE
 
     def prepare_attention_mask(raw_attention_mask, device, target_dtype, model_type, seq_length=None):
-        """辅助函数：为attention模块准备正确格式的attention mask"""
+        """Auxiliary function: Prepare the attention mask in the correct format for the attention module"""
         if model_type in ["gpt2", "gpt_neo"]:
             batch_size = raw_attention_mask.shape[0]
             seq_length = seq_length or raw_attention_mask.shape[1]
@@ -93,7 +93,7 @@ def train_single_block_variant(parent_model, tokenizer,
             raw_attention_mask = batch['attention_mask'].to(device)
             attention_mask_preprocessed = prepare_attention_mask(raw_attention_mask, device, target_float_dtype, model_type, seq_length=input_ids.shape[1])
 
-            # 维持对attention_mask_float的引用以用于调试
+            # Maintain a reference to the attention mask float for debugging
             attention_mask_float = raw_attention_mask.to(dtype=target_float_dtype)
             
             current_hidden_states = None
@@ -114,7 +114,7 @@ def train_single_block_variant(parent_model, tokenizer,
 
             for i_prev_layer in range(layer_idx):
                 layer_to_use = parent_layers_ref[i_prev_layer].to(device).eval()
-                # 使用preprocessed的attention mask
+                # Use the preprocessed attention mask
                 layer_outputs_tuple = layer_to_use(current_hidden_states, 
                                                  attention_mask=attention_mask_preprocessed,
                                                  use_cache=False)
@@ -161,7 +161,7 @@ def train_single_block_variant(parent_model, tokenizer,
                     parent_block_to_mimic = get_ffn_block(original_parent_target_layer)
                     original_attn_in_layer = get_attention_block(original_parent_target_layer)
                     
-                    # 修正：为FFN mimic分支也使用prepare_attention_mask生成4D mask
+                    # 4D masks are also generated for the FFN mimic branch using the prepare attention mask
                     attn_mask_for_ffn_mimic = prepare_attention_mask(raw_attention_mask, device, target_float_dtype, model_type, seq_length=input_ids.shape[1])
                     attn_kwargs_for_ffn_input = {"attention_mask": attn_mask_for_ffn_mimic, "use_cache": False, "output_attentions": False}
                     if model_type in ["gpt2", "gpt_neo"]: attn_kwargs_for_ffn_input["layer_past"] = None
@@ -191,7 +191,7 @@ def train_single_block_variant(parent_model, tokenizer,
             optimizer.zero_grad()
             current_variant_output = None
             if is_attention_variant:
-                # 使用预处理好的attention mask
+                # Use the pretrained attention mask
                 attention_mask_final = attention_mask_preprocessed
 
                 child_attn_kwargs = {
@@ -210,7 +210,7 @@ def train_single_block_variant(parent_model, tokenizer,
             else: # is_ffn_variant
                 with torch.no_grad(): 
                     parent_attn_of_layer = get_attention_block(original_parent_target_layer)
-                    # 使用统一的mask处理
+                    # Use the unified mask for processing
                     attention_mask_ffn = prepare_attention_mask(raw_attention_mask, device, target_float_dtype, model_type, seq_length=input_ids.shape[1])
                     ffn_input_prep_attn_kwargs = {
                         "attention_mask": attention_mask_ffn,
