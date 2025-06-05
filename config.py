@@ -50,7 +50,7 @@ KV_CACHE_MEMORY_PER_TOKEN_PER_HEAD_PER_LAYER = 0.0001 # GB (very rough)
 # RL Configuration
 RL_AGENT_HIDDEN_DIM = 64
 RL_LEARNING_RATE = 1e-3
-RL_NUM_EPISODES = 100 # 实际应用中需要更多
+RL_NUM_EPISODES = 100 # reality might be higher, but we keep it small for dev
 RL_GAMMA = 0.99 # Discount factor for future rewards (if needed, often 1.0 for NAS)
 RL_BUDGET_PENALTY = 1000 # Large penalty for exceeding budget
 RL_RESOURCE_USAGE_PENALTY_FACTOR = 0.1 # Small penalty for using resources
